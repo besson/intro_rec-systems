@@ -1,0 +1,15 @@
+.classpath
+.settings
+.project
+.metadata
+**/.project
+**/.classpath
+**/.metadata
+
+*/../.settings
+**/**/test-output/**
+**/**/**/test-output/**
+target/
+bin/
+test-output/
+.DS_Store
