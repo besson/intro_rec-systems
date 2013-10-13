@@ -1,3 +1,5 @@
+package edu.umn.cs.recsys.uu;
+
 import java.util.List;
 
 import org.testng.annotations.DataProvider;
