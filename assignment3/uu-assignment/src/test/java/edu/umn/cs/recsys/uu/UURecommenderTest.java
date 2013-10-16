@@ -18,7 +18,7 @@ public class UURecommenderTest {
 
 		UUMain.main(args);
 
-		List<Recommendation> recommendations = UUMain.getRecommendationsFor(2048l);
+		List<Recommendation> recommendations = UUMain.getRecommendationsFor(input.split(":")[0]);
 		Recommendation recommendation = recommendations.get(0);
 	
 		assertEquals(recommendation.getMovieId(), expRec.getMovieId());
@@ -29,18 +29,18 @@ public class UURecommenderTest {
 	@DataProvider(name = "testData")
 	public Object[][] populateTestData() {
 		return new Object[][] {
-				{"2048:77", getRecommendation(77l, "Mrs. Doubtfire (1993)", 3.8509f)},
-				{"2048:36955", getRecommendation(36955l, "True Lies (1994)", 3.9698f)},
-				{"2048:788", getRecommendation(788l, "Mrs. Doubtfire (1993)", 4.2155f)},
-				{"1024:462", getRecommendation(462, "Erin Brockovich (2000)", 3.1082)},
-				{"1024:393", getRecommendation(393, "Kill Bill: Vol. 2 (2004)", 3.8722)},
-				{"1024:36955", getRecommendation(36955, "True Lies (1994)", 2.3524)},
-				{"1024:77", getRecommendation(77, "Memento (2000)", 4.3848)},
-				{"1024:268", getRecommendation(268, "Batman (1989)", 2.8646)}
+				{"2048:788", getRecommendation(788l, "Mrs. Doubtfire (1993)", "3.8509")},
+				{"2048:36955", getRecommendation(36955l, "True Lies (1994)", "3.9698")},
+				{"2048:77", getRecommendation(77l, "Memento (2000)", "4.8493")},
+				{"1024:462", getRecommendation(462, "Erin Brockovich (2000)", "3.1082")},
+				{"1024:393", getRecommendation(393, "Kill Bill: Vol. 2 (2004)", "3.8722")},
+				{"1024:36955", getRecommendation(36955, "True Lies (1994)", "2.3524")},
+				{"1024:77", getRecommendation(77, "Memento (2000)", "4.3848")},
+				{"1024:268", getRecommendation(268, "Batman (1989)", "2.8646")}
 		};
 	}
 
-	private Recommendation getRecommendation(long id, String title, double score) {
+	private Recommendation getRecommendation(long id, String title, String score) {
 		Recommendation recommendation = new Recommendation();
 		recommendation.setMovieId(id);
 		recommendation.setMovieTitle(title);

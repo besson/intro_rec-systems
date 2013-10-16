@@ -1,10 +1,13 @@
 package edu.umn.cs.recsys.uu;
 
+import org.grouplens.lenskit.vectors.SparseVector;
+
 
 public class Neighbor implements Comparable<Neighbor>{
 
 	private Long id;
-	private Double score;
+	private Double similarity;
+	private SparseVector vector;
 	
 	public Long getId() {
 		return id;
@@ -14,17 +17,29 @@ public class Neighbor implements Comparable<Neighbor>{
 		this.id = id;
 	}
 
-	public Double getScore() {
-		return score;
+	public Double getSimilarity() {
+		return similarity;
 	}
 
-	public void setScore(Double score) {
-		this.score = score;
+	public void setSimilarity(Double similarity) {
+		this.similarity = similarity;
+	}
+
+	public void usetRatingVector(SparseVector vector) {
+		this.vector = vector;
+	}
+
+	public SparseVector getVector() {
+		return vector;
+	}
+
+	public void setVector(SparseVector vector) {
+		this.vector = vector;
 	}
 
 	@Override
-	public int compareTo(Neighbor arg0) {
-		return (arg0.getId() > this.score) ? 1 : 0;
+	public int compareTo(Neighbor o) {
+		return this.getSimilarity().compareTo(o.getSimilarity());
 	}
-	
+
 }

@@ -82,7 +82,7 @@ public class UUMain {
                 String title = titleDAO.getItemTitle(item);
                 Recommendation recommendation = new Recommendation();
                 recommendation.setMovieId(item);
-                recommendation.setMovieScore(scores.get(item));
+                recommendation.setMovieScore(score);
                 recommendation.setMovieTitle(title);
 
                 List<Recommendation> userRecommendations;
@@ -99,8 +99,8 @@ public class UUMain {
         }
     }
     
-    public static List<Recommendation> getRecommendationsFor(Long user) {
-		return recommendations.get(user);
+    public static List<Recommendation> getRecommendationsFor(String user) {
+		return recommendations.get(Long.parseLong(user));
     }
 
     /**

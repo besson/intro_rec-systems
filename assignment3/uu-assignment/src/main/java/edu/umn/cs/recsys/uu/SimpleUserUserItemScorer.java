@@ -1,8 +1,13 @@
 package edu.umn.cs.recsys.uu;
 
+import it.unimi.dsi.fastutil.longs.LongSet;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -38,34 +43,45 @@ public class SimpleUserUserItemScorer extends AbstractItemScorer {
 	public void score(long user, @Nonnull MutableSparseVector scores) {
 		SparseVector userVector = getUserRatingVector(user);
 
-		// TODO Score items for this user using user-user collaborative
-		// filtering
-
-		// This is the loop structure to iterate over items to score
 		for (VectorEntry e : scores.fast(VectorEntry.State.EITHER)) {
-			List<Neighbor> similarNeighborhood = getSimilarNeighborhood(userVector, e.getKey());
+			List<Neighbor> similarNeighborhood = getSimilarNeighborhood(userVector, e.getKey(), user);
+
+			double score1 = 0;
+			double score2 = 0;
+
+			for (Neighbor neighbor : similarNeighborhood) {
+				double similarity = neighbor.getSimilarity();
+				score1 += (similarity * neighbor.getVector().get(e.getKey()));
+				score2 += Math.abs(similarity);
+			}
+
+			double totalScore = userVector.mean() + (score1/score2);
+			scores.set(e.getKey(), totalScore);
 		}
 	}
 
-	private List<Neighbor> getSimilarNeighborhood(SparseVector userVector, Long movieId) {
-		MutableSparseVector userRatings = getAllUserRatingVectorsForMovie(movieId);
-
+	private List<Neighbor> getSimilarNeighborhood(SparseVector userVector, Long movieId, Long userId) {
+		Map<Long, MutableSparseVector> userRatings = getAllUserRatingVectorsForMovie(movieId);
+		userRatings.remove(userId);
 		userVector = calculateMeanCenterRating(userVector);
 
 		CosineVectorSimilarity calculator = new CosineVectorSimilarity();
 		List<Neighbor> neighborhood = new ArrayList<Neighbor>();
 
-		for (VectorEntry entry : userRatings.fast()) { 
+		for (Entry<Long, MutableSparseVector> entry : userRatings.entrySet()) {
 			Neighbor neighbor = new Neighbor();
 			neighbor.setId(entry.getKey());
-			neighbor.setScore(calculator.similarity(userVector, calculateMeanCenterRating(entry.getVector())));
+
+			SparseVector neighborVector = calculateMeanCenterRating(entry.getValue());
+			neighbor.usetRatingVector(neighborVector);
+			neighbor.setSimilarity(calculator.similarity(userVector, neighborVector));
 
 			neighborhood.add(neighbor);
 		}
-		
-		Collections.reverse(neighborhood);
 
-		return neighborhood.subList(0, 29);
+		Collections.sort(neighborhood, Collections.reverseOrder());
+
+		return (neighborhood.size() < 30) ? neighborhood : neighborhood.subList(0, 30);
 	}
 
 	/**
@@ -95,14 +111,14 @@ public class SimpleUserUserItemScorer extends AbstractItemScorer {
 		return mVector;
 	}
 
-	private MutableSparseVector getAllUserRatingVectorsForMovie(Long id) {
-		MutableSparseVector users = MutableSparseVector.create(itemDao.getUsersForItem(id));
-		
-		for (VectorEntry entry : users.fast() ) {
-			SparseVector userRatingVector = getUserRatingVector(entry.getKey());
-			users.set(userRatingVector);
+	private Map<Long, MutableSparseVector> getAllUserRatingVectorsForMovie(Long id) {
+		LongSet userSet = itemDao.getUsersForItem(id);
+		Map<Long, MutableSparseVector> userRatingVectors = new HashMap<Long, MutableSparseVector>();
+
+		for (Long userId : userSet) {
+			userRatingVectors.put(userId, getUserRatingVector(userId).mutableCopy());
 		}
-		
-		return users;
+
+		return userRatingVectors;
 	}
 }

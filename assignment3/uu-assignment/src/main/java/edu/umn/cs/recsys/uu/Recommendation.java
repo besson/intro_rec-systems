@@ -26,7 +26,7 @@ public class Recommendation {
 		return movieScore;
 	}
 
-	public void setMovieScore(Double movieScore) {
-		this.movieScore = movieScore;
+	public void setMovieScore(String movieScore) {
+		this.movieScore = Double.parseDouble(movieScore);
 	}
 }
