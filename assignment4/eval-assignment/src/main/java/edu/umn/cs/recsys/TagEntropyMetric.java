@@ -1,6 +1,9 @@
 package edu.umn.cs.recsys;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
 
@@ -98,22 +101,26 @@ public class TagEntropyMetric extends AbstractTestUserMetric {
 			}
 			LenskitRecommender lkrec = (LenskitRecommender) testUser.getRecommender();
 			ItemTagDAO tagDAO = lkrec.get(ItemTagDAO.class);
-			TagVocabulary vocab = lkrec.get(TagVocabulary.class);
-
 			double entropy = 0;
-			ImmutableSet<String> uniqueTags = FluentIterable.from(tagDAO.getTagVocabulary()).transform(new ToLowerCase()).toSet();
+			Map<String, Double> tagPtL = new HashMap<String, Double>();
 
-			for (String tag : uniqueTags) {
+			for (ScoredId scoredId : recommendations) {
+				ImmutableSet<String> movieTags = FluentIterable.from(tagDAO.getItemTags(scoredId.getId())).transform(new ToLowerCase())
+						.toSet();
 
-				double tagSum = 0;
+				for (String tag : movieTags) {
+					double ptM = 1.0 / movieTags.size();
 
-				for (ScoredId scoredId : recommendations) {
-					ImmutableSet<String> movietags = FluentIterable.from(tagDAO.getItemTags(scoredId.getId())).transform(new ToLowerCase())
-							.toSet();
-					tagSum += calculatePtL(vocab, tag, tagSum, movietags);
+					if (tagPtL.containsKey(tag)) {
+						ptM += tagPtL.get(tag);
+						tagPtL.remove(tag);
+					}
+					tagPtL.put(tag, ptM);
 				}
+			}
 
-				tagSum /= recommendations.size();
+			for (Entry<String, Double> entry : tagPtL.entrySet()) {
+				double tagSum = entry.getValue() / recommendations.size();
 
 				if (tagSum > 0) {
 					entropy += (-tagSum * (Math.log(tagSum) / Math.log(2)));
@@ -123,14 +130,6 @@ public class TagEntropyMetric extends AbstractTestUserMetric {
 			totalEntropy += entropy;
 			userCount += 1;
 			return new Object[] { entropy };
-		}
-
-		private double calculatePtL(TagVocabulary vocab, String tag, double tagSum, ImmutableSet<String> tags) {
-			if (tags.contains(tag.toLowerCase())) {
-				return (1.0 / tags.size());
-			}
-
-			return 0;
 		}
 
 		/**
