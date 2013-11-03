@@ -10,3 +10,6 @@ print (ggplot(results[,list(RMSE.ByUser=mean(RMSE.ByUser)),by=list(Algorithm)]) 
 print (ggplot(results[,list(nDCG=mean(nDCG)),by=list(Algorithm)]) + aes(x=nDCG, y=Algorithm) + geom_point())
 print (ggplot(results[,list(TopN.nDCG=mean(TopN.nDCG)),by=list(Algorithm)]) + aes(x=TopN.nDCG, y=Algorithm) + geom_point())
 print (ggplot(results[,list(TagEntropy.10=mean(TagEntropy.10)),by=list(Algorithm)]) + aes(x=TagEntropy.10, y=Algorithm) + geom_point())
+
+# to know each NNbrs separately
+print (ggplot(results[,list(TagEntropy.10=mean(TagEntropy.10)),by=list(Algorithm,NNbrs)]) + aes(y=TagEntropy.10, x=Algorithm) + geom_point(aes(colour = factor(NNbrs))))
