@@ -45,7 +45,25 @@ public class SimpleItemItemScorer extends AbstractItemScorer {
         for (VectorEntry e: scores.fast(VectorEntry.State.EITHER)) {
             long item = e.getKey();
             List<ScoredId> neighbors = model.getNeighbors(item);
-            // TODO Score this item and save the score into scores
+            
+            if (neighbors.size() > neighborhoodSize) {
+            	neighbors.subList(0, neighborhoodSize);
+            }
+            
+            double score = 0;
+            double score1 = 0;
+            
+            for (ScoredId neighbor : neighbors) {
+            	double rating = 0d;
+            	if (ratings.containsKey(neighbor.getId())) {
+            		rating = ratings.get(neighbor.getId());
+            		score += neighbor.getScore() * rating;
+            		score1 += neighbor.getScore();
+            	}
+            }
+            
+            double totalScore = score / Math.abs(score1);
+            scores.set(item, totalScore);
         }
     }
 
