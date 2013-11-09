@@ -93,9 +93,11 @@ public class IIMain {
 			for (ScoredId item : items) {
 
 				String title = titleDAO.getItemTitle(item.getId());
+				String score = String.format(Locale.ROOT, "%.4f", item.getScore());
+
 				Recommendation recommendation = new Recommendation();
 				recommendation.setMovieId(item.getId());
-				recommendation.setMovieScore(Double.valueOf(item.getScore()).toString());
+				recommendation.setMovieScore(score);
 				recommendation.setMovieTitle(title);
 				globalRecommendations.add(recommendation);
 
