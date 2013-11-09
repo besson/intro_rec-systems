@@ -3,8 +3,6 @@ package edu.umn.cs.recsys.ii;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.longs.LongSortedSet;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +19,6 @@ import org.grouplens.lenskit.data.dao.UserEventDAO;
 import org.grouplens.lenskit.data.event.Event;
 import org.grouplens.lenskit.data.history.RatingVectorUserHistorySummarizer;
 import org.grouplens.lenskit.data.history.UserHistory;
-import org.grouplens.lenskit.scored.PackedScoredIdList;
 import org.grouplens.lenskit.scored.ScoredId;
 import org.grouplens.lenskit.scored.ScoredIdListBuilder;
 import org.grouplens.lenskit.scored.ScoredIds;
@@ -35,16 +32,13 @@ import org.slf4j.LoggerFactory;
 /**
  * @author <a href="http://www.grouplens.org">GroupLens Research</a>
  */
-public class SimpleItemItemModelBuilder implements
-		Provider<SimpleItemItemModel> {
+public class SimpleItemItemModelBuilder implements Provider<SimpleItemItemModel> {
 	private final ItemDAO itemDao;
 	private final UserEventDAO userEventDao;
-	private static final Logger logger = LoggerFactory
-			.getLogger(SimpleItemItemModelBuilder.class);;
+	private static final Logger logger = LoggerFactory.getLogger(SimpleItemItemModelBuilder.class);;
 
 	@Inject
-	public SimpleItemItemModelBuilder(@Transient ItemDAO idao,
-			@Transient UserEventDAO uedao) {
+	public SimpleItemItemModelBuilder(@Transient ItemDAO idao, @Transient UserEventDAO uedao) {
 		itemDao = idao;
 		userEventDao = uedao;
 	}
@@ -67,36 +61,19 @@ public class SimpleItemItemModelBuilder implements
 			for (Long item : items) {
 				if (!item.equals(entry.getKey())) {
 					ImmutableSparseVector itemVector = itemVectors.get(item);
-					double similarity = calculator.similarity(entry.getValue(),
-							itemVector);
-					builder.add(item, similarity);
+					double similarity = calculator.similarity(entry.getValue(), itemVector);
+
+					if (similarity > 0) {
+						builder.add(item, similarity);
+					}
 				}
 			}
 
-			List<ScoredId> scoreIds = builder.sort(getComparator()).build();
+			List<ScoredId> scoreIds = builder.sort(new ScoredIdComparator()).build();
 			itemSimilarities.put(entry.getKey(), scoreIds);
-
 		}
 
 		return new SimpleItemItemModel(itemSimilarities);
-	}
-
-	private Comparator<ScoredId> getComparator() {
-		Comparator<ScoredId> comparator = new Comparator<ScoredId>() {
-
-			@Override
-			public int compare(ScoredId arg0, ScoredId arg1) {
-				if (arg0.getScore() < arg1.getScore()) {
-					return 1;
-				} else if (arg0.getScore() > arg1.getScore()) {
-					return -1;
-				}
-
-				return 0;
-			}
-		};
-
-		return comparator;
 	}
 
 	/**
@@ -120,8 +97,7 @@ public class SimpleItemItemModelBuilder implements
 		Cursor<UserHistory<Event>> stream = userEventDao.streamEventsByUser();
 		try {
 			for (UserHistory<Event> evt : stream) {
-				MutableSparseVector vector = RatingVectorUserHistorySummarizer
-						.makeRatingVector(evt).mutableCopy();
+				MutableSparseVector vector = RatingVectorUserHistorySummarizer.makeRatingVector(evt).mutableCopy();
 				// vector is now the user's rating vector
 				// TODO Normalize this vector and store the ratings in the item
 				// data
@@ -129,13 +105,11 @@ public class SimpleItemItemModelBuilder implements
 				vector.add(-mean);
 
 				for (VectorEntry entry : vector.fast(VectorEntry.State.EITHER)) {
-					if (entry.getValue() > 0d) {
-						Map<Long, Double> tempMap = itemData.get(entry.getKey());
-						tempMap.put(evt.getUserId(), entry.getValue());
-						
-						itemData.remove(entry.getKey());
-						itemData.put(entry.getKey(), tempMap);
-					}
+					Map<Long, Double> tempMap = itemData.get(entry.getKey());
+					tempMap.put(evt.getUserId(), entry.getValue());
+
+					itemData.remove(entry.getKey());
+					itemData.put(entry.getKey(), tempMap);
 				}
 			}
 		} finally {
@@ -146,8 +120,7 @@ public class SimpleItemItemModelBuilder implements
 		// vectors
 		Map<Long, ImmutableSparseVector> itemVectors = new HashMap<Long, ImmutableSparseVector>();
 		for (Map.Entry<Long, Map<Long, Double>> entry : itemData.entrySet()) {
-			MutableSparseVector vec = MutableSparseVector.create(entry
-					.getValue());
+			MutableSparseVector vec = MutableSparseVector.create(entry.getValue());
 			itemVectors.put(entry.getKey(), vec.immutable());
 		}
 		return itemVectors;
