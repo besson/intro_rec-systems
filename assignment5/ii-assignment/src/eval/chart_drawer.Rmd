@@ -1,0 +1,24 @@
+# tutorial
+library(ggplot2)
+library(data.table)
+
+setwd("/Users/fbesson/dev/study/intro_rec-systems/assignment5/ii-assignment/src/eval")
+
+results = data.table(read.csv("analysis/eval-results.csv"))
+
+print (ggplot(results[,list(RMSE.ByRating=mean(RMSE.ByRating)),by=list(Algorithm)]) + aes(x=RMSE.ByRating, y=Algorithm) + geom_point())
+print (ggplot(results[,list(RMSE.ByUser=mean(RMSE.ByUser)),by=list(Algorithm)]) + aes(x=RMSE.ByUser, y=Algorithm) + geom_point())
+print (ggplot(results[,list(nDCG=mean(nDCG)),by=list(Algorithm)]) + aes(x=nDCG, y=Algorithm) + geom_point())
+print (ggplot(results[,list(TopN.nDCG=mean(TopN.nDCG)),by=list(Algorithm)]) + aes(x=TopN.nDCG, y=Algorithm) + geom_point())
+
+# to know each NNbrs separately
+print (ggplot(results[,list(RMSE.ByRating=mean(RMSE.ByRating)),by=list(Algorithm,NNbrs)]) + aes(y=RMSE.ByRating, x=Algorithm) + geom_point(aes(colour = factor(NNbrs))))
+print (ggplot(results[,list(RMSE.ByUser=mean(RMSE.ByUser)),by=list(Algorithm,NNbrs)]) + aes(y=RMSE.ByUser, x=Algorithm) + geom_point(aes(colour = factor(NNbrs))))
+print (ggplot(results[,list(nDCG=mean(nDCG)),by=list(Algorithm,NNbrs)]) + aes(y=nDCG, x=Algorithm) + geom_point(aes(colour = factor(NNbrs))))
+print (ggplot(results[,list(TopN.nDCG=mean(TopN.nDCG)),by=list(Algorithm,NNbrs)]) + aes(y=TopN.nDCG, x=Algorithm) + geom_point(aes(colour = factor(NNbrs))))
+
+# to know each NNbrs separately
+print (ggplot(results[,list(RMSE.ByRating=mean(RMSE.ByRating)),by=list(Algorithm,DataSet)]) + aes(y=RMSE.ByRating, x=Algorithm) + geom_point(aes(colour = factor(DataSet))))
+print (ggplot(results[,list(RMSE.ByUser=mean(RMSE.ByUser)),by=list(Algorithm,DataSet)]) + aes(y=RMSE.ByUser, x=Algorithm) + geom_point(aes(colour = factor(DataSet))))
+print (ggplot(results[,list(nDCG=mean(nDCG)),by=list(Algorithm,DataSet)]) + aes(y=nDCG, x=Algorithm) + geom_point(aes(colour = factor(DataSet))))
+print (ggplot(results[,list(TopN.nDCG=mean(TopN.nDCG)),by=list(Algorithm,DataSet)]) + aes(y=TopN.nDCG, x=Algorithm) + geom_point(aes(colour = factor(DataSet))))

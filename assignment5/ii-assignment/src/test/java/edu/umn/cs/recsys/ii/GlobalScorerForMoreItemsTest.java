@@ -4,13 +4,14 @@ import static org.testng.Assert.assertEquals;
 
 import java.util.List;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class GlobalScorerForMoreItemsTest {
 
-	@BeforeTest
+	@BeforeMethod
 	public void runRecommender() {
 		String[] args = { "--basket", "77", "680" };
 		IIMain.main(args);
