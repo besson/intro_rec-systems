@@ -22,7 +22,8 @@ import javax.inject.Inject;
  * SVD-based item scorer.
  */
 public class SVDItemScorer extends AbstractItemScorer {
-	private static final Logger logger = LoggerFactory.getLogger(SVDItemScorer.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(SVDItemScorer.class);
 	private final SVDModel model;
 	private final ItemScorer baselineScorer;
 	private final UserEventDAO userEvents;
@@ -38,7 +39,8 @@ public class SVDItemScorer extends AbstractItemScorer {
 	 *            The baseline scorer (providing means).
 	 */
 	@Inject
-	public SVDItemScorer(SVDModel m, UserEventDAO uedao, @BaselineScorer ItemScorer baseline) {
+	public SVDItemScorer(SVDModel m, UserEventDAO uedao,
+			@BaselineScorer ItemScorer baseline) {
 		model = m;
 		baselineScorer = baseline;
 		userEvents = uedao;
@@ -60,23 +62,18 @@ public class SVDItemScorer extends AbstractItemScorer {
 		// TODO Score the items in the key domain of scores
 
 		SparseVector userRatingVector = getUserRatingVector(user);
-		MutableSparseVector baselines = MutableSparseVector.create(userRatingVector.keySet());
-		baselineScorer.score(user, baselines);
+		MutableSparseVector baselines = MutableSparseVector
+				.create(userRatingVector.keySet());
 
 		for (VectorEntry e : scores.fast(VectorEntry.State.EITHER)) {
 			long item = e.getKey();
 
-			RealMatrix matrix = model.getUserVector(user).multiply(model.getFeatureWeights())
-					.multiply(model.getItemVector(item).transpose());
+			RealMatrix matrix = model.getUserVector(user)
+					.multiply(model.getFeatureWeights())
+					.multiply(model.getItemFeatureMatrix().transpose());
 
-			
-			if (baselines.containsKey(item)) {
-				double d = baselines.get(item);
-				scores.set(item, d + matrix.getEntry(0, 0));
-			} else {
-				scores.set(item, matrix.getEntry(0, 0));
-			}
-
+			double d = baselineScorer.score(user, item);
+			scores.set(item, d + matrix.getEntry(0, model.getItemIndMapping().getIndex(item)));
 		}
 	}
 
@@ -88,7 +85,8 @@ public class SVDItemScorer extends AbstractItemScorer {
 	 * @return The ratings to retrieve.
 	 */
 	private SparseVector getUserRatingVector(long user) {
-		UserHistory<Rating> history = userEvents.getEventsForUser(user, Rating.class);
+		UserHistory<Rating> history = userEvents.getEventsForUser(user,
+				Rating.class);
 		if (history == null) {
 			history = History.forUser(user);
 		}

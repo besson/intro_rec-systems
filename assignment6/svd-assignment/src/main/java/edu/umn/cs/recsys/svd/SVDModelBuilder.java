@@ -80,9 +80,9 @@ public class SVDModelBuilder implements Provider<SVDModel> {
 
         // Third, truncate the decomposed matrix
         // TODO Truncate the matrices and construct the SVD model
-        RealMatrix subUMatrix = svd.getU().getSubMatrix(0, userMapping.size() - 1, 0, featureCount);
-        RealMatrix subVMatrix = svd.getV().getSubMatrix(0, itemMapping.size() - 1, 0, featureCount);
-        RealMatrix subSMatrix = svd.getS().getSubMatrix(0, featureCount, 0, featureCount);
+        RealMatrix subUMatrix = svd.getU().getSubMatrix(0, userMapping.size() - 1, 0, featureCount-1);
+        RealMatrix subVMatrix = svd.getV().getSubMatrix(0, itemMapping.size() - 1, 0, featureCount-1);
+        RealMatrix subSMatrix = svd.getS().getSubMatrix(0, featureCount-1, 0, featureCount-1);
 
         // TODO Replace this throw line with returning the model when you are finished
         return new SVDModel(userMapping, itemMapping, subUMatrix, subVMatrix, subSMatrix);
@@ -114,16 +114,13 @@ public class SVDModelBuilder implements Provider<SVDModel> {
                 MutableSparseVector baselines = MutableSparseVector.create(ratings.keySet());
                 baselineScorer.score(user.getUserId(), baselines);
                 // TODO Populate this user's row with their ratings, minus the baseline scores
-	            ratings.subtract(baselines);
 	            
 				for (Long id : itemMapping.getIdList()) {
 					int i = itemMapping.getIndex(id);
 					
 					if (ratings.containsKey(id)) {
-						matrix.setEntry(u, i, ratings.get(id));
-					} else {
-						matrix.setEntry(u, i, 0);
-					}
+						matrix.setEntry(u, i, ratings.get(id) - baselines.get(id));
+					} 
 				}
             }
         } finally {
